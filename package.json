@@ -54,9 +54,10 @@
     "tailwindcss": "1 || 2 || 2.0.1-compat || 3"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.2",
     "@vue/eslint-config-standard": "^8.0.0",
     "@vue/test-utils": "^2.4.3",
-    "@vueuse/core": "^10.11.0",
+    "@vueuse/core": "^10.11.1",
     "defu": "^3.2.2",
     "eslint": "^8.49.0",
     "eslint-plugin-vue": "^9.17.0",

@@ -42,18 +42,12 @@
             :title="section.title"
             :id="section.title"
           >
-            <Intersect
-              :threshold="[0.0]"
-              rootMargin="-40% 0px -60% 0px"
-              @enter="setActiveSection(section)"
-              @leaave="setActiveSection(null)"
-            >
-              <component
-                :is="section.component"
-                :data="section.data"
-                :config="config"
-              />
-            </Intersect>
+            <component
+              ref="sectionRefs"
+              :is="section.component"
+              :data="section.data"
+              :config="config"
+            />
           </CanvasSection>
         </div>
       </div>
@@ -61,65 +55,71 @@
   </div>
 </template>
 
-<script>
-import { defineAsyncComponent } from 'vue'
+<script setup>
+import { defineProps, provide, ref, onMounted, onUnmounted } from 'vue'
 import defu from 'defu'
-import Intersect from 'vue-intersect'
+import { useIntersectionObserver } from '@vueuse/core'
 import themeComponentMapper from './themeComponentMapper'
 import fontTagCreator from './fontTagCreator'
 import CanvasSection from './CanvasSection.vue'
 import ToggleSwitch from '../ToggleSwitch.vue'
 import defaultOptions from '../../defaultOptions'
 
-export default {
-  components: {
-    CanvasSection,
-    ToggleSwitch,
-    Intersect
-  },
-
-  provide () {
-    return {
-      prefixClassName: this.prefixClassName,
-      getConfig: this.getConfig
-    }
-  },
-
-  props: {
-    darkMode: {
-      type: Boolean,
-      required: false
-    }
-  },
-
-  data () {
-    return {
-      activeSection: null,
-      config: null,
-      configTransformed: null
-    }
-  },
-
-  methods: {
-    prefixClassName (className) {
-      return this.config.prefix ? `${this.config.prefix}${className}` : className
-    },
-
-    getConfig () {
-      return this.config
-    },
-
-    setActiveSection (section) {
-      this.activeSection = section
-    }
-  },
-
-  async mounted () {
-    const config = await fetch('/api/config.json')
-    this.config = await config.json()
-    this.config = defu(this.config, defaultOptions)
-    this.configTransformed = themeComponentMapper(this.config.theme)
-    fontTagCreator(this.config.theme)
+defineProps({
+  darkMode: {
+    type: Boolean,
+    required: false
   }
+})
+
+const prefixClassName = (className) => {
+  return config.value.prefix ? `${config.value.prefix}${className}` : className
 }
+
+const getConfig = () => {
+  return config.value
+}
+
+const setActiveSection = (section) => {
+  activeSection.value = section
+}
+
+provide('prefixClassName', prefixClassName)
+provide('getConfig', getConfig)
+
+
+const activeSection = ref(null)
+const config = ref(null)
+const configTransformed = ref(null)
+const sectionRefs = ref([])
+
+const { stop } = useIntersectionObserver(
+  sectionRefs,
+  ([{ isIntersecting, target }], observerElement) => {
+    const index = sectionRefs.value.map(ref => ref.$el).indexOf(target)
+    
+    if (isIntersecting) {
+      setActiveSection(configTransformed.value[index])
+    } else {
+      setActiveSection(null)
+    }
+  },
+  {
+    threshold: 0.0,
+    rootMargin: '-40% 0px -60% 0px'
+  }
+)
+
+onMounted(async () => {
+  const response = await fetch('/api/config.json')
+  config.value = await response.json()
+  config.value = defu(config.value, defaultOptions)
+  configTransformed.value = themeComponentMapper(config.value.theme)
+  fontTagCreator(config.value.theme)
+})
+
+onUnmounted(() => {
+  stop()
+})
+
 </script>

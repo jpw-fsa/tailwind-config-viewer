@@ -1,13 +1,5 @@
-import Vue from 'vue'
-import App from './App.vue'
+import { createApp } from 'vue'
 import '@/assets/css/index.css'
+import App from './App.vue'
 
-;(async function init () {
-  // config
-  Vue.config.productionTip = false
-
-  // load vue
-  new Vue({
-    render: h => h(App)
-  }).$mount('#app')
-}())
+createApp(App).mount('#app')
