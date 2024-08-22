@@ -14,7 +14,8 @@
         bg-white dark:bg-gray-900
         text-gray-800 dark:text-gray-400
         rounded text-sm appearance-none"
-      v-model="selected"
+        :value="modelValue"
+        @change="$emit('update:modelValue', $event.target.value)"
     >
       <option v-for="(value, key) in options" :key="key" :value="key">{{ value }}</option>
     </select>
@@ -29,22 +30,12 @@ export default {
       required: true
     },
 
-    value: {
+    modelValue: {
       type: [Object, String],
       default: null
     }
   },
 
-  data () {
-    return {
-      selected: this.value
-    }
-  },
-
-  watch: {
-    selected (newValue) {
-      this.$emit('input', newValue)
-    }
-  }
+  emits: ['update:modelValue']
 }
 </script>
